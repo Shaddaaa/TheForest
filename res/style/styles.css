@@ -1,0 +1,10 @@
+*{
+	text-align: center;
+}
+#game-cvs{
+	border: 1px solid black;
+}
+
+.big{
+	font-size: 20px;
+}
