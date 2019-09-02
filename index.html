@@ -4,9 +4,19 @@
 			<meta charset="utf-8">
 			<link rel="stylesheet" type="text/css" href="res/style/styles.css">
 		</head>
-		<body>
+		<body onload="onLoad()">
+			<script src="res/scripts/utility.js"></script>
 			<script src="res/scripts/game.js"></script>
 
 			<div id="treeDisplay"></div>
+			<div id="treesGainedPerSecond"></div>
+			<div id="treesLostPerSecond"></div>
+
+			<div id="treeShop">
+				<button id="constantTreeMult" type="button" onclick="upgrade(0)"></button>
+				<button id="lowerTreeLogBase" type="button" onclick="upgrade(1)"></button>
+				<button id="lowerBurnChance" type="button" onclick="upgrade(2)"></button>
+				<button id="lowerBurnPercentage" type="button" onclick="upgrade(3)"></button>
+			</div>
 		</body>
-</html>	
+</html>
