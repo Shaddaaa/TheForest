@@ -8,12 +8,14 @@ let DIVtreeDisplay;
 let DIVtreesGainerPerSecond;
 let DIVtreesLostPerSecond;
 let DIVtreeShop;
+let DIVtreesDifference;
 
 function onLoad() {
 	DIVtreeDisplay = document.getElementById("treeDisplay");
 	DIVtreesGainerPerSecond = document.getElementById("treesGainedPerSecond");
 	DIVtreesLostPerSecond = document.getElementById("treesLostPerSecond");
 	DIVtreeShop = document.getElementById("treeShop");
+	DIVtreesDifference = document.getElementById("treesDifference");
 }
 
 
@@ -37,7 +39,7 @@ let game = {
 }
 
 let currentBaseDivisor = Math.log(game.treeGrowthBase);
-function getOptimisedBaseLog(x) {
+function getOptimisedTreeBaseLog(x) {
 	if(game.newTreeGrowthBase != game.treeGrowthBase) {
 		game.treeGrowthBase = game.newTreeGrowthBase;
     	currentBaseDivisor = Math.log(game.treeGrowthBase);
@@ -54,12 +56,12 @@ function gameLoop() {
 	
 	game.trees += gainTrees();
 	game.trees -= loseTrees();
-	if(game.trees < 1 ||  isNaN(game.trees))
+	if(isNaN(game.trees) || game.trees < 1)
 		game.trees = 1;
 }
 
 function gainTrees() {
-	var ret = (getOptimisedBaseLog(game.trees, game.treeGrowthBase)+0.5) * game.constantTreeMult;
+	var ret = (getOptimisedTreeBaseLog(game.trees, game.treeGrowthBase)+0.5) * game.constantTreeMult;
 	return ret;
 }
 
@@ -70,16 +72,22 @@ function loseTrees() {
 	return ret;
 }
 
+function averageTreeLoss() {
+	return game.burnChance * game.burnPercentage * game.trees;	
+}
+
 function draw() {
 	if(game.currentDrawSpeed!=game.drawSpeed) {
 		clearInterval(drawInterval);
 		game.currentDrawSpeed = game.drawSpeed;
 		drawInterval = setInterval(draw, game.drawSpeed);
 	}
-
+	let gain = Math.round(gainTrees()*100*TPS)/100;
+	let loss = Math.round(averageTreeLoss()*100*TPS)/100;
 	DIVtreeDisplay.innerHTML = "Trees: " + Math.round(game.trees);
-	DIVtreesGainerPerSecond.innerHTML = "Trees gained per second: " + Math.round(gainTrees()*2000)/100;
-	DIVtreesLostPerSecond.innerHTML = "Trees lost per second: " + Math.round(gainTrees()*2000)/100;
+	DIVtreesGainerPerSecond.innerHTML = "Trees gained per second: " + gain;
+	DIVtreesLostPerSecond.innerHTML = "Trees lost per second: " + loss;
+	DIVtreesDifference.innerHTML = "Gain/Loss difference: " + Math.round(gain-loss);
 
 	drawShop();
 }
