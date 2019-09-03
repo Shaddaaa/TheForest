@@ -34,7 +34,8 @@ let game = {
 		constantTreeMult:7,
 		lowerTreeLogBase:7,
 		lowerBurnChance:10,
-		lowerBurnPercentage:10
+		lowerBurnPercentage:10,
+		lowerPrices:100
 	}
 }
 
@@ -54,26 +55,28 @@ function gameLoop() {
 		gameLoopInterval = setInterval(gameLoop, game.updateSpeed);
 	}
 	
-	game.trees += gainTrees();
-	game.trees -= loseTrees();
+	game.trees += treesThisTick();
 	if(isNaN(game.trees) || game.trees < 1)
 		game.trees = 1;
 }
 
-function gainTrees() {
-	var ret = (getOptimisedTreeBaseLog(game.trees, game.treeGrowthBase)+0.5) * game.constantTreeMult;
-	return ret;
+function treesThisTick() {
+	return treeGainThisTick() - treeLossThisTick();
 }
 
-function loseTrees() {
-	var ret = 0;
+function treeLossThisTick() {
+	var loss = 0;
 	if(game.burnChance>Math.random())
-		ret = game.trees*game.burnPercentage;
-	return ret;
+		loss = game.trees*game.burnPercentage;
+	return loss;
 }
 
-function averageTreeLoss() {
-	return game.burnChance * game.burnPercentage * game.trees;	
+function treeGainThisTick() {
+	return (getOptimisedTreeBaseLog(game.trees, game.treeGrowthBase)+0.5) * game.constantTreeMult;
+}
+
+function averageTreesPerTick() {
+	return treeGainThisTick() - game.burnChance * game.burnPercentage * game.trees;	
 }
 
 function draw() {
@@ -82,21 +85,18 @@ function draw() {
 		game.currentDrawSpeed = game.drawSpeed;
 		drawInterval = setInterval(draw, game.drawSpeed);
 	}
-	let gain = Math.round(gainTrees()*100*TPS)/100;
-	let loss = Math.round(averageTreeLoss()*100*TPS)/100;
 	DIVtreeDisplay.innerHTML = "Trees: " + Math.round(game.trees);
-	DIVtreesGainerPerSecond.innerHTML = "Trees gained per second: " + gain;
-	DIVtreesLostPerSecond.innerHTML = "Trees lost per second: " + loss;
-	DIVtreesDifference.innerHTML = "Gain/Loss difference: " + Math.round(gain-loss);
+	DIVtreesDifference.innerHTML = "Trees per second: " + Math.round(averageTreesPerTick()*100*TPS)/100;
 
 	drawShop();
 }
 
 function drawShop() {
-	document.getElementById("constantTreeMult").innerHTML="Increase tree gain by x2" +"<br>"+ "Cost: " + game.shopCosts.constantTreeMult;
-	document.getElementById("lowerTreeLogBase").innerHTML="Decrease log base for tree gain by 10%" +"<br>"+ "Cost: " + game.shopCosts.lowerTreeLogBase;;
-	document.getElementById("lowerBurnChance").innerHTML="Decrease burn chance by 10%" +"<br>"+ "Cost: " + game.shopCosts.lowerBurnChance;;
-	document.getElementById("lowerBurnPercentage").innerHTML="Decrease burn damage by 10%" +"<br>"+ "Cost: " + game.shopCosts.lowerBurnPercentage;;
+	document.getElementById("constantTreeMult").innerHTML="Increase tree gain by x2" +"<br>"+ "Cost: " + Math.round(game.shopCosts.constantTreeMult);
+	document.getElementById("lowerTreeLogBase").innerHTML="Decrease log base for tree gain by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerTreeLogBase);
+	document.getElementById("lowerBurnChance").innerHTML="Decrease burn chance by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerBurnChance);
+	document.getElementById("lowerBurnPercentage").innerHTML="Decrease burn damage by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerBurnPercentage);
+	document.getElementById("lowerPrices").innerHTML="Lower tree upgrade prices by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerPrices);
 }
 
 function upgrade(id) {
@@ -128,6 +128,19 @@ function upgrade(id) {
 				game.shopCosts.lowerBurnPercentage *= 2;
 				game.trees -= game.shopCosts.lowerBurnPercentage;
 			}
+			break;
+		case 4:
+			if(game.shopCosts.lowerPrices <= game.trees) {
+				game.trees -= game.shopCosts.lowerPrices;
+				for (var key in game.shopCosts) {
+   		 			if (game.shopCosts.hasOwnProperty(key)) {
+        				game.shopCosts[key] *= 0.9;
+        				console.log(key);
+    				}
+				}
+				game.shopCosts.lowerPrices *= 1/0.9 * 10;
+			}
+			console.log("f");
 			break;
 		default:
 			console.log("Error. There is no upgrade with the id: " + id);
