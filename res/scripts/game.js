@@ -5,17 +5,29 @@ let drawSpeed = 1000/TPS;
 let currentDrawSpeed = 1000/TPS;
 
 let DIVtreeDisplay;
-let DIVtreesGainerPerSecond;
-let DIVtreesLostPerSecond;
 let DIVtreeShop;
 let DIVtreesDifference;
+let DIVanimalsDisplay;
+let DIVanimalsDifference;
+let DIVtShopConstTreeMult;
+let DIVtShopLowerBurnChance;
+let DIVtShopLowerBurnPercentage;
+let DIVtShopLowerPrices;
+let DIVtShopIncreaseAnimalChance;
+let DIVtShopIncreaseAnimalMax;
 
 function onLoad() {
-	DIVtreeDisplay = document.getElementById("treeDisplay");
-	DIVtreesGainerPerSecond = document.getElementById("treesGainedPerSecond");
-	DIVtreesLostPerSecond = document.getElementById("treesLostPerSecond");
+	DIVtreeDisplay = document.getElementById("trees");
 	DIVtreeShop = document.getElementById("treeShop");
 	DIVtreesDifference = document.getElementById("treesDifference");
+	DIVanimalsDisplay = document.getElementById("animals");
+	DIVanimalsDifference = document.getElementById("animalsDifference");
+	DIVtShopConstTreeMult = document.getElementById("constantTreeMult");
+	DIVtShopLowerBurnChance = document.getElementById("lowerBurnChance");
+	DIVtShopLowerBurnPercentage = document.getElementById("lowerBurnPercentage");
+	DIVtShopLowerPrices = document.getElementById("lowerPrices");
+	DIVtShopIncreaseAnimalChance = document.getElementById("increaseAnimalChance");
+	DIVtShopIncreaseAnimalMax = document.getElementById("increaseAnimalMax");
 }
 
 
@@ -27,15 +39,20 @@ let game = {
 	newTreeGrowthBase:1024,
 	constantTreeMult:1,
 
+	animals:0,
+	animalChance:0.00,
+	constantAnimalMaxMult:1,
+
 	burnChance:1,
 	burnPercentage:0.1,
 
-	shopCosts: {
+	treeShopCosts: {
 		constantTreeMult:7,
-		lowerTreeLogBase:7,
 		lowerBurnChance:10,
 		lowerBurnPercentage:10,
-		lowerPrices:100
+		lowerPrices:100,
+		increaseAnimalChance:200,
+		constantAnimalMaxMult:200
 	}
 }
 
@@ -55,28 +72,26 @@ function gameLoop() {
 		gameLoopInterval = setInterval(gameLoop, game.updateSpeed);
 	}
 	
-	game.trees += treesThisTick();
+	game.trees += getTreesThisTick();
 	if(isNaN(game.trees) || game.trees < 1)
 		game.trees = 1;
+	game.animals += getAnimalsThisTick();
 }
 
-function treesThisTick() {
-	return treeGainThisTick() - treeLossThisTick();
+function getTreeGainThisTick() {
+	return (getOptimisedTreeBaseLog(game.trees, game.treeGrowthBase)+0.5) * game.constantTreeMult + (game.animals+1);
 }
 
-function treeLossThisTick() {
-	var loss = 0;
-	if(game.burnChance>Math.random())
-		loss = game.trees*game.burnPercentage;
-	return loss;
+function getTreesThisTick() {
+	return getTreeGainThisTick() - game.burnChance * game.burnPercentage * game.trees;	
 }
 
-function treeGainThisTick() {
-	return (getOptimisedTreeBaseLog(game.trees, game.treeGrowthBase)+0.5) * game.constantTreeMult;
-}
-
-function averageTreesPerTick() {
-	return treeGainThisTick() - game.burnChance * game.burnPercentage * game.trees;	
+function getAnimalsThisTick() {
+	if(game.animalChance >= Math.random()) {
+		return 0.01 * (Math.log10(game.trees)*game.constantAnimalMaxMult-game.animals);
+	} else {
+		return 0;
+	}
 }
 
 function draw() {
@@ -85,62 +100,83 @@ function draw() {
 		game.currentDrawSpeed = game.drawSpeed;
 		drawInterval = setInterval(draw, game.drawSpeed);
 	}
-	DIVtreeDisplay.innerHTML = "Trees: " + Math.round(game.trees);
-	DIVtreesDifference.innerHTML = "Trees per second: " + Math.round(averageTreesPerTick()*100*TPS)/100;
+	DIVtreeDisplay.innerHTML = "Trees: " + Math.floor(game.trees);
+	DIVtreesDifference.innerHTML = "Trees per tick: " + Math.floor(getTreesThisTick()*100)/100;
+
+	DIVanimalsDisplay.innerHTML = "Animals: " + Math.floor(game.animals) + " of " + Math.floor(Math.log10(game.trees)*game.constantAnimalMaxMult);
 
 	drawShop();
 }
 
 function drawShop() {
-	document.getElementById("constantTreeMult").innerHTML="Increase tree gain by x2" +"<br>"+ "Cost: " + Math.round(game.shopCosts.constantTreeMult);
-	document.getElementById("lowerTreeLogBase").innerHTML="Decrease log base for tree gain by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerTreeLogBase);
-	document.getElementById("lowerBurnChance").innerHTML="Decrease burn chance by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerBurnChance);
-	document.getElementById("lowerBurnPercentage").innerHTML="Decrease burn damage by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerBurnPercentage);
-	document.getElementById("lowerPrices").innerHTML="Lower tree upgrade prices by 10%" +"<br>"+ "Cost: " + Math.round(game.shopCosts.lowerPrices);
+	DIVtShopConstTreeMult.innerHTML="Increase tree gain by x2 <br> Cost: " + Math.ceil(game.treeShopCosts.constantTreeMult);
+	DIVtShopLowerBurnChance.innerHTML="Decrease burn chance by 10% <br> Cost: " + Math.ceil(game.treeShopCosts.lowerBurnChance);
+	DIVtShopLowerBurnPercentage.innerHTML="Decrease burn damage by 10% <br> Cost: " + Math.ceil(game.treeShopCosts.lowerBurnPercentage);
+	DIVtShopLowerPrices.innerHTML="Lower tree upgrade prices by 10% <br> Cost: " + Math.ceil(game.treeShopCosts.lowerPrices);
+	DIVtShopIncreaseAnimalChance.innerHTML="Increase chance to gain more animals by +1% <br> Cost: " + Math.ceil(game.treeShopCosts.increaseAnimalChance);
+	DIVtShopIncreaseAnimalMax.innerHTML="Increase max animals multiplier by 1 <br> Cost: " + Math.ceil(game.treeShopCosts.constantAnimalMaxMult);
+}
+
+function unlockAnimals() {
+	if(game.trees >= 3480) {
+		game.trees -=3480;
+		game.animalChance = 0.01;
+		game.animals = 1;
+		DIVanimalsDisplay.style.display = "inherit";
+		DIVanimalsDifference.style.display = "inherit";
+		DIVtShopIncreaseAnimalChance.style.display = "inherit";
+		DIVtShopIncreaseAnimalMax.style.display = "inherit";
+		document.getElementById("unlockAnimals").style.display = "none"
+	}
 }
 
 function upgrade(id) {
 	switch(id) {
 		case 0:
-			if(game.shopCosts.constantTreeMult <= game.trees) {
+			if(game.treeShopCosts.constantTreeMult <= game.trees) {
 				game.constantTreeMult *= 2;
-				game.shopCosts.constantTreeMult *=5;
-				game.trees -= game.shopCosts.constantTreeMult;
+				game.trees -= game.treeShopCosts.constantTreeMult;
+				game.treeShopCosts.constantTreeMult *=5;
+			}
+			break;	
+		case 1:
+			if(game.treeShopCosts.lowerBurnChance <= game.trees) {
+				game.burnChance *= 0.9;
+				game.trees -= game.treeShopCosts.lowerBurnChance;
+				game.treeShopCosts.lowerBurnChance *=1.5;
 			}
 			break;
-		case 1:
-			if(game.shopCosts.lowerTreeLogBase <= game.trees) {
-				game.newTreeGrowthBase *= 0.9;
-				game.shopCosts.lowerTreeLogBase *=2;
-				game.trees -= game.shopCosts.lowerTreeLogBase;
-			}
-			break;		
 		case 2:
-			if(game.shopCosts.lowerBurnChance <= game.trees) {
-				game.burnChance *= 0.9;
-				game.shopCosts.lowerBurnChance *=1.5;
-				game.trees -= game.shopCosts.lowerBurnChance;
+			if(game.treeShopCosts.lowerBurnPercentage <= game.trees) {
+				game.burnPercentage *= 0.9;
+				game.trees -= game.treeShopCosts.lowerBurnPercentage;
+				game.treeShopCosts.lowerBurnPercentage *= 2;
 			}
 			break;
 		case 3:
-			if(game.shopCosts.lowerBurnPercentage <= game.trees) {
-				game.burnPercentage *= 0.9;
-				game.shopCosts.lowerBurnPercentage *= 2;
-				game.trees -= game.shopCosts.lowerBurnPercentage;
+			if(game.treeShopCosts.lowerPrices <= game.trees) {
+				game.trees -= game.treeShopCosts.lowerPrices;
+				for (var key in game.treeShopCosts) {
+   		 			if (game.treeShopCosts.hasOwnProperty(key)) {
+        				game.treeShopCosts[key] *= 0.9;
+    				}
+				}
+				game.treeShopCosts.lowerPrices *= 1/0.9 * 10;
 			}
 			break;
 		case 4:
-			if(game.shopCosts.lowerPrices <= game.trees) {
-				game.trees -= game.shopCosts.lowerPrices;
-				for (var key in game.shopCosts) {
-   		 			if (game.shopCosts.hasOwnProperty(key)) {
-        				game.shopCosts[key] *= 0.9;
-        				console.log(key);
-    				}
-				}
-				game.shopCosts.lowerPrices *= 1/0.9 * 10;
+			if(game.treeShopCosts.increaseAnimalChance <= game.trees && game.animalChance < 1) {
+				game.animalChance += 0.01;
+				game.trees -= game.treeShopCosts.increaseAnimalChance;
+				game.treeShopCosts.increaseAnimalChance *= 2;
 			}
-			console.log("f");
+			break;
+		case 5:
+			if(game.treeShopCosts.constantAnimalMaxMult <= game.trees) {
+				game.constantAnimalMaxMult += 1;
+				game.trees -= game.treeShopCosts.constantAnimalMaxMult;
+				game.treeShopCosts.constantAnimalMaxMult *= 5;
+			}
 			break;
 		default:
 			console.log("Error. There is no upgrade with the id: " + id);

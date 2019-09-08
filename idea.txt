@@ -6,15 +6,38 @@ trees
 wood
 coal
 
+-------
+TRESS:
+
 GROWTH:
 trees added each tick = log base n of trees
-trees += logBASEn(trees)
+trees += logBASEn(trees) * c
 
-trees burn down based on chance
-if(chance) trees-=percentage*trees
+trees burn down each tick
+trees-=percentage*chance*trees
 
 GROWTH-UGPRADES:
 constant multiplier c
-lower logarithm base n
 lower burn chance
 lower burn percentage
+
+-------
+ANIMALS:
+boost forest growth by composting
+
+BOOST:
+multiply growth with animals+1
+
+GROWTH:
+animals grow until they hit an amount dependent on the amount of trees
+
+diff = limit - current
+diff ALWAYS has to be greater than or equal to the growth, so that current + growth is never greater than limit
+growth = 0.2 * diff
+after n ticks we will be at:
+diff = 0.8^n * diff
+
+GRWOTH-UPGRADES:
+constant multiplier c to maximum animals
+increase replicate chance
+-------

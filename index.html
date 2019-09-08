@@ -5,20 +5,23 @@
 			<link rel="stylesheet" type="text/css" href="res/style/styles.css">
 		</head>
 		<body onload="onLoad()">
-			<script src="res/scripts/utility.js"></script>
 			<script src="res/scripts/game.js"></script>
 
-			<div id="treeDisplay"></div>
-			<div id="treesGainedPerSecond"></div>
-			<div id="treesLostPerSecond"></div>
+			<div id="trees"></div>
 			<div id="treesDifference"></div>
+			<div id="animals" style="display: none"></div>
+			<div id="animalsDifference" style="display: none"></div>
 
 			<div id="treeShop">
 				<button id="constantTreeMult" type="button" onclick="upgrade(0)"></button>
-				<button id="lowerTreeLogBase" type="button" onclick="upgrade(1)"></button>
-				<button id="lowerBurnChance" type="button" onclick="upgrade(2)"></button>
-				<button id="lowerBurnPercentage" type="button" onclick="upgrade(3)"></button>
-				<button id="lowerPrices" type="button" onclick="upgrade(4)">text</button>
+				<button id="lowerBurnChance" type="button" onclick="upgrade(1)"></button>
+				<button id="lowerBurnPercentage" type="button" onclick="upgrade(2)"></button>
+				<button id="lowerPrices" type="button" onclick="upgrade(3)"></button>
+				<button id="increaseAnimalChance" type="button" onclick="upgrade(4)" style="display: none"></button>
+				<button id="increaseAnimalMax" type="button" onclick="upgrade(5)" style="display: none"></button>
 			</div>
-		</body>
+			<BR>
+			<button id="unlockAnimals" type="button" onclick="unlockAnimals()" style="font-size: 30px">Unlock Animals <BR> Cost: 3480</button>
+			<button type="button" onclick="for(let i = 0; i < 1000; i++) {gameLoop()}">Warp</button>
+			</body>
 </html>
